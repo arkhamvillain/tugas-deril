@@ -5,24 +5,24 @@ import fnmatch
 CASE_INSENSITIVE_FLAG = '-i'
 WHOLE_WORD_FLAG = '-w'
 ASTERISK_WILDCARD = '*'
+INVALID_ARGS_ERROR_MSG = 'Argumen program tidak benar.'
 
 
 def validate_input(path: str, keyword: str, flag: str) -> None:
     """Validate user inputs"""
     args_limit = 4
     wildcard_limit = 1
-    invalid_args_error_msg = 'Argumen program tidak benar.'
 
     try:
         # Validate number of args
         if len(sys.argv) > args_limit:
-            raise Exception(invalid_args_error_msg)
+            raise Exception(INVALID_ARGS_ERROR_MSG)
         # Validate keyword
         if keyword.count(ASTERISK_WILDCARD) > wildcard_limit:
-            raise Exception(invalid_args_error_msg)
+            raise Exception(INVALID_ARGS_ERROR_MSG)
         # Validate flag
         if (len(sys.argv) == args_limit) and (flag not in (CASE_INSENSITIVE_FLAG, WHOLE_WORD_FLAG)):
-            raise Exception(invalid_args_error_msg)
+            raise Exception(INVALID_ARGS_ERROR_MSG)
         # Validate path
         if not os.path.exists(path):
             raise Exception(f'Path {path} tidak ditemukan')
@@ -115,4 +115,7 @@ def main(path: str, keyword: str, flag: str) -> None:
 
 # Start the program
 if __name__ == "__main__":
-    main(sys.argv[-1], sys.argv[-2], sys.argv[-3])
+    try:
+        main(sys.argv[-1], sys.argv[-2], sys.argv[-3])
+    except IndexError:
+        print(INVALID_ARGS_ERROR_MSG)
