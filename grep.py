@@ -7,6 +7,30 @@ WHOLE_WORD_FLAG = '-w'
 ASTERISK_WILDCARD = '*'
 
 
+def validate_input(path: str, keyword: str, flag: str) -> None:
+    """Validate user inputs"""
+    args_limit = 4
+    wildcard_limit = 1
+    invalid_args_error_msg = 'Argumen program tidak benar.'
+
+    try:
+        # Validate number of args
+        if len(sys.argv) > args_limit:
+            raise Exception(invalid_args_error_msg)
+        # Validate keyword
+        if keyword.count(ASTERISK_WILDCARD) > wildcard_limit:
+            raise Exception(invalid_args_error_msg)
+        # Validate flag
+        if (len(sys.argv) == args_limit) and (flag not in (CASE_INSENSITIVE_FLAG, WHOLE_WORD_FLAG)):
+            raise Exception(invalid_args_error_msg)
+        # Validate path
+        if not os.path.exists(path):
+            raise Exception(f'Path {path} tidak ditemukan')
+    except Exception as error:
+        print(error)
+        sys.exit()
+
+
 def search_in_file(filepath: str, keyword: str, flag: str) -> str:
     """Search for matching lines in a single file"""
     output = ''
@@ -24,7 +48,6 @@ def search_in_file(filepath: str, keyword: str, flag: str) -> str:
             else:
                 if fnmatch.fnmatch(row, ASTERISK_WILDCARD + keyword + ASTERISK_WILDCARD):
                     output += format_single_output(filepath, lines.index(row) + 1, row)
-
     return output
 
 
@@ -32,8 +55,9 @@ def traverse_directories(path: str, keyword: str, flag: str) -> str:
     """Traverse all directories and subdirectories, and examine every single file"""
     output = ''
 
-    for (current_path, dirs, files) in os.walk(path, topdown=False):
-        # Clean up hidden files and directories
+    for (current_path, dirs, files) in os.walk(path, topdown=True):
+        dirs.sort()
+        # Clean up hidden files and directories (especially on Mac)
         files = [f for f in files if not f[0] == '.']
         dirs[:] = [d for d in dirs if not d[0] == '.']
         # Loop through all files in the current directory
@@ -76,30 +100,6 @@ def format_final_output(output: str) -> str:
     return output.strip()
 
 
-def validate_input(path: str, keyword: str, flag: str) -> None:
-    """Validate user inputs"""
-    args_limit = 4
-    wildcard_limit = 4
-    invalid_args_error_msg = 'Argumen program tidak benar.'
-
-    try:
-        # Validate number of args
-        if len(sys.argv) > args_limit:
-            raise Exception(invalid_args_error_msg)
-        # Validate keyword
-        if keyword.count(ASTERISK_WILDCARD) > wildcard_limit:
-            raise Exception(invalid_args_error_msg)
-        # Validate flag
-        if (len(sys.argv) == args_limit) and (flag not in (CASE_INSENSITIVE_FLAG, WHOLE_WORD_FLAG)):
-            raise Exception(invalid_args_error_msg)
-        # Validate path
-        if not os.path.exists(path):
-            raise Exception(f'Path {path} tidak ditemukan')
-    except Exception as error:
-        print(error)
-        sys.exit()
-
-
 def main(path: str, keyword: str, flag: str) -> None:
     """Entry point of the program"""
     validate_input(path, keyword, flag)
@@ -114,4 +114,5 @@ def main(path: str, keyword: str, flag: str) -> None:
 
 
 # Start the program
-main(sys.argv[-1], sys.argv[-2], sys.argv[-3])
+if __name__ == "__main__":
+    main(sys.argv[-1], sys.argv[-2], sys.argv[-3])
